@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
-import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -562,8 +561,8 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
         boolean result = gameBoard.addPipeToBoard(box.getPoint(), nextType);
 
         if (result) {
-            MediaPlayer ratchet = MediaPlayer.create(MainActivity.this, R.raw.wrench01);
-            ratchet.start();
+//            MediaPlayer ratchet = MediaPlayer.create(MainActivity.this, R.raw.wrench01);
+//            ratchet.start();
 
             box.setType(nextBar.OnClickAction());
             box.AnimateClick();
@@ -603,8 +602,8 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
                     timer.cancel();
                     shouldPlayAnimation = true;
                     gameBoard.startGame();
-                    MediaPlayer startFlowSound = MediaPlayer.create(MainActivity.this, R.raw.start_flowing);
-                    startFlowSound.start();
+//                    MediaPlayer startFlowSound = MediaPlayer.create(MainActivity.this, R.raw.start_flowing);
+//                    startFlowSound.start();
                 }
                 levelSpeedPerFrame = 16;
             }
@@ -689,8 +688,6 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
                     public void run() {
                         shouldPlayAnimation = true;
                         gameBoard.startGame();
-                        MediaPlayer startFlowSound = MediaPlayer.create(MainActivity.this, R.raw.start_flowing);
-                        startFlowSound.start();
                     }
                 });
             }
@@ -707,8 +704,6 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
     @Override
     protected void onResume() {
         super.onResume();
-//        Intent serviceIntent = new Intent(this, MusicService.class);
-//        startService(serviceIntent);
 
         //check if the main dialog already displayed
         if (mainAlertDialog == null || mainAlertDialog.isShowing() == false) {
@@ -720,8 +715,6 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
     @Override
     protected void onPause() {
         super.onPause();
-//        Intent serviceIntent = new Intent(this, MusicService.class);
-//        stopService(serviceIntent);
         PauseGame();
     }
 
@@ -801,8 +794,6 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
             gameBoard.nextGame();
         }
 
-//        MediaPlayer bellNewGame = MediaPlayer.create(MainActivity.this, R.raw.bell2);
-//        bellNewGame.start();
 
         if (gameBoard.getLevelNumber() == 0) {
             firstMoveFlicker();
@@ -838,11 +829,7 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
 
     public BoxButton getBoxFromPoint(Point point) {
         BoxButton ret = layoutBoard.get(point);
-        if (ret != null) {
-            return ret;
-        }
-
-        return null;
+        return ret;
     }
 
     public BoxButton getBoxFromPipe(Pipe pipe) {
@@ -854,9 +841,6 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
         View levelDoneDialog = getLayoutInflater().inflate(R.layout.level_done_dialog, null);
         Typeface tf = Typeface.createFromAsset(getApplicationContext().getAssets(), "fonts/" + "makhina.ttf");
 
-
-        MediaPlayer woohooSound = MediaPlayer.create(MainActivity.this, R.raw.woohoo);
-        woohooSound.start();
 
 
         builder.setCancelable(false);
@@ -1011,53 +995,39 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
         mainAlertDialog.show();
 
 
-        newGameButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                StartNewGame(true);
-                mainAlertDialog.dismiss();
+        newGameButton.setOnClickListener(view -> {
+            StartNewGame(true);
+            mainAlertDialog.dismiss();
 
 
-            }
         });
 
 
-        highScoreButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mainAlertDialog.dismiss();
-                Intent intent = new Intent(MainActivity.this, ActivityScores.class);
-                startActivity(intent);
-            }
+        highScoreButton.setOnClickListener(view -> {
+            mainAlertDialog.dismiss();
+            Intent intent = new Intent(MainActivity.this, ActivityScores.class);
+            startActivity(intent);
         });
 
-        quitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mainAlertDialog.dismiss();
-                finish();
-            }
+        quitButton.setOnClickListener(view -> {
+            mainAlertDialog.dismiss();
+            finish();
         });
 
-        continueButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-//                MediaPlayer bellContinue = MediaPlayer.create(MainActivity.this, R.raw.bell2);
-//                bellContinue.start();
-                if (gameBoard.getIsInGame()) {
-                    shouldPlayAnimation = true;
-                    Pipe currentFlowingPipe = gameBoard.getCurrentPipe();
-                    BoxButton currentFlowingBox = layoutBoard.get(currentFlowingPipe.getPosition());
-                    currentFlowingBox.AnimateFlow(currentFlowingPipe.getFlowDirection(), currentFlowingPipe.getNumOfVisits());
+        continueButton.setOnClickListener(view -> {
+            if (gameBoard.getIsInGame()) {
+                shouldPlayAnimation = true;
+                Pipe currentFlowingPipe = gameBoard.getCurrentPipe();
+                BoxButton currentFlowingBox = layoutBoard.get(currentFlowingPipe.getPosition());
+                currentFlowingBox.AnimateFlow(currentFlowingPipe.getFlowDirection(), currentFlowingPipe.getNumOfVisits());
+            } else {
+                if (gameBoard.shouldLoadNextLevel()) {
+                    StartNewGame(false);
                 } else {
-                    if (gameBoard.shouldLoadNextLevel()) {
-                        StartNewGame(false);
-                    } else {
-                        startGameTimer();
-                    }
+                    startGameTimer();
                 }
-                mainAlertDialog.dismiss();
             }
+            mainAlertDialog.dismiss();
         });
     }
 
@@ -1065,18 +1035,14 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         View gameOverDialog = getLayoutInflater().inflate(R.layout.level_done_dialog, null);
         Typeface tf = Typeface.createFromAsset(getApplicationContext().getAssets(), "fonts/" + "makhina.ttf");
-        String buttonText = new String();
-        String statusText = new String();
-        if (isRecord == true) {
+        String buttonText;
+        String statusText;
+        if (isRecord) {
             buttonText = getResources().getString(R.string.str_new_record_button);
             statusText = getResources().getString(R.string.str_new_record_text);
-            MediaPlayer newRecordSound = MediaPlayer.create(MainActivity.this, R.raw.new_record);
-            newRecordSound.start();
         } else {
             buttonText = getResources().getString(R.string.str_gameover_button);
             statusText = getResources().getString(R.string.str_gameover_text);
-            MediaPlayer gameOverSound = MediaPlayer.create(MainActivity.this, R.raw.game_over);
-            gameOverSound.start();
         }
 
         builder.setCancelable(false);
@@ -1227,53 +1193,6 @@ public class MainActivity extends Activity implements View.OnClickListener , Obs
         point_bar.setText(gameBoard.getTotalScore() + "");
     }
 
-//    public void SetLevelBackground(int levelNumber) {
-//        LinearLayout backgroundLayout = findViewById(R.id.background_layout);
-//        int levelBack = levelNumber % 10;
-//        switch (levelBack) {
-//            case 1:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_1);
-//                break;
-//            case 2:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_2);
-//
-//                break;
-//            case 3:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_3);
-//
-//                break;
-//            case 4:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_4);
-//
-//                break;
-//            case 5:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_5);
-//
-//                break;
-//            case 6:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_6);
-//
-//                break;
-//            case 7:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_7);
-//
-//                break;
-//            case 8:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_8);
-//
-//                break;
-//            case 9:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_9);
-//
-//                break;
-//            case 0:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_10);
-//
-//                break;
-//            default:
-//                backgroundLayout.setBackgroundResource(R.drawable.background_level_4);
-//        }
-//    }
 
     public boolean IsRecord(int score) {
         if (score == 50) {
